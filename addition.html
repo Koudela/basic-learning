@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<!--suppress CssUnusedSymbol, JSUnresolvedVariable -->
+<html lang="de">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<title>Addition bis 10</title>
+	<style>
+	#tab > span {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border: 1px solid black;
+		border-radius: 5px;
+		margin: 2px;
+		height: 32px;
+		width: 32px;
+		cursor: pointer;
+	}
+	#tab > span > span {
+		display: inline;
+	}
+	#tab > span.active {
+		border-color: blue;
+		color: blue;
+	}
+	#input {
+		height: 32px;
+		
+		position: absolute;
+		top:0;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		z-index: -1;
+		
+		margin: auto;
+		
+		text-align: center;
+	}
+	#task {
+		display: inline-block;
+		padding: 7px;
+		border: 1px solid black;
+		border-radius: 5px;
+	}
+	.inputBox {
+		display: inline-block;
+		border: 1px solid lightgrey;
+		border-radius: 5px;
+		width: 30px;
+		height: 26px;
+		color: black;
+		font-weight: normal;
+		vertical-align: middle;
+		padding-top: 4px;
+	}
+	#relation {
+		font-size: 120%;
+	}
+	#points {
+        position: fixed;
+        right: 2px;
+        bottom: 2px;
+        color: limegreen;
+        font-size: 80%;
+	}
+	#performance {
+		position: fixed;
+		right: 2px;
+		top: 2px;
+		width: 100px;
+	}
+	#performance > span {
+		display: inline-block;
+		width: 1px;
+		height: 5px;
+	}
+	#performance0 {
+		background-color: red;
+	}
+	#performance1 {
+		background-color: orange;
+	}
+	#performance2 {
+		background-color: yellow;
+	}
+	#performance3 {
+		background-color: limegreen;
+	}
+	#performance4 {
+		background-color: deepskyblue;
+	}
+	#performance5 {
+		background-color: fuchsia;/*deeppink;*/
+	}
+	</style>
+</head>
+<body>
+	<div id="tab"></div>
+	
+	<div id="input">
+		<span id="task">
+			<span id="first"></span>
+			<span id="operator">-</span> 
+			<span id="second"></span> 
+			<span id="relation">=</span> 
+			<span id="result" class="inputBox"></span>
+		</span>
+	</div>
+
+	<div id="performance"><span id="performance0"></span><span id="performance1"></span><span id="performance2"></span><span id="performance3"></span><span id="performance4"></span><span id="performance5"></span></div>
+
+	<div id="points">
+        <span id="tasksPoints">0</span> Punkte / <span id="tasksSuccess">0</span> Aufgaben
+	</div>
+	
+	<script type="text/javascript">
+		const task = document.querySelector('#task');
+		const first = document.querySelector('#first');
+		const second = document.querySelector('#second');
+		const result = document.querySelector('#result');
+		const operator = document.querySelector('#operator');
+		const relation = document.getElementById('relation');
+
+		const exercises = [{
+			name: 'plus',
+			icon: '+',
+			type: 'new',
+			cnt: 35,
+			exerciseCollectionFactory: function() {
+				const collection={};
+				let id=0;
+				for (let i=0; i<10; i++) {
+					for (let j=0; j<=i && i+j <= 10; j++) {
+						collection[id] = {id:id, first:i, operator:'+', second:j, relation:'=', result:'', level:0, cnt:0, time:2400, input:'result'}
+						id++;
+					}
+				}
+				return collection;
+			}
+		}, {
+			name: 'minus',
+			icon: '&ndash;',
+			type: 'new',
+			cnt: 35,
+			exerciseCollectionFactory: function() {
+				const collection={}
+				let id=0;
+				for (let i=0; i<10; i++) {
+					for (let j=0; j<=i && i+j <= 10; j++) {
+						collection[id] = {id:id, first:(i+j), operator:'-', second:j, relation:'=', result:'', level:0, cnt:0, time:2400, input:'result'}
+						id++;
+					}
+				}
+				return collection;
+			}
+		}, {
+			name: 'plusMinus',
+			icon: '+/&ndash;',
+			type: 'new',
+			cnt: 100,
+			exerciseCollectionFactory: function() {
+				const collection={}
+				let id=0;
+				for (let i=0; i<10; i++) {
+					for (let j=0; i+j <= 10; j++) {
+						collection[id] = {id:id, first:i, operator:'+', second:j, relation:'=', result:'', level:0, cnt:0, time:2400, input:'result'}
+						id++;
+						if (i >= j) {
+							collection[id] = {id:id, first:(i+j), operator:'-', second:j, relation:'=', result:'', level:0, cnt:0, time:2400, input:'result'}
+							id++;
+						}
+					}
+				}
+				return collection;
+			}
+		}, {
+			name: 'pairs10',
+			icon: '10',
+			type: 'new',
+			cnt: 10,
+			exerciseCollectionFactory: function() {
+				const collection={}
+				let id=0;
+				for (let i=0; i<10; i++) {
+					collection[id] = {id:id, first:i, operator:'+', second:'', relation:'=', result:10, level:0, cnt:0, time:2400, input:'second'}
+					id++;
+				}
+				return collection;
+			}
+		}, {
+			name: 'relation10',
+			icon: '&gt;',
+			type: 'new',
+			cnt: 100,
+			exerciseCollectionFactory: function() {
+				const collection={}
+				let id=0;
+				for (let i=0; i<10; i++) {
+					for (let j=0; j<10; j++) {
+						collection[id] = {id:id, first:i, operator:'+', second:j, relation:'', result:10, level:0, cnt:0, time:2400, input:'relation'}
+						id++;
+					}
+				}
+				return collection;
+			}
+		}, {
+			name: 'addTo10',
+			icon: '1#',
+			type: 'new',
+			cnt: 10,
+			exerciseCollectionFactory: function() {
+				const collection={}
+				let id=0;
+				for (let i=0; i<10; i++) {
+					collection[id] = {id:id, first:i, operator:'+', second:10, relation:'=', result:'', level:0, cnt:0, time:2400, input:'result'}
+					id++;
+				}
+				return collection;
+			}
+		}, {
+			name: '10erUebergang',
+			icon: 'ÜG',
+			type: 'new',
+			cnt: 36,
+			exerciseCollectionFactory: function() {
+				const collection={}
+				let id=0;
+				for (let i=0; i<10; i++) {
+					for (let j=(11-i); j<10; j++) {
+						collection[id] = {id:id, first:i, operator:'+', second:j, relation:'=', result:'', level:0, cnt:0, time:2400, input:'result'}
+						id++;
+					}
+				}
+				return collection;
+			}
+		}];
+
+		const exerciseCollection = {};
+		const initExercises = function() {
+			let html = '';
+			exercises.forEach(function(exercise) {
+				exerciseCollection[exercise.name] = localStorage.getItem(exercise.name);
+				if (null === exerciseCollection[exercise.name]) {
+					exerciseCollection[exercise.name] = exercise.exerciseCollectionFactory();
+				} else { 
+					exerciseCollection[exercise.name] = JSON.parse(exerciseCollection[exercise.name]);
+				}
+				html += "<span id=\""+exercise.name+"\"><span>"+exercise.icon+"</span></span>\n\r";
+				exerciseCollection[exercise.name].length = exercise.cnt;
+			});
+			document.getElementById('tab').innerHTML = html;
+			exercises.forEach(function(exercise) {
+				document.getElementById(exercise.name).addEventListener('click', function() { changeApp(exercise.name); });
+			});
+		}
+		initExercises();
+
+		let app = 'minus';
+		let currentExercises = null;
+		const changeApp = function(name) {
+			if (app !== name) {
+				document.getElementById(app).classList.remove('active');
+				document.getElementById(name).classList.add('active');
+				
+				currentExercises = exerciseCollection[name];
+				
+				app = name;
+
+				initPerformance();
+				printPerformance();
+
+				nextTask();
+			}
+		}
+		
+		const level = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0};
+		const initPerformance = function() {
+			for (const l in level) {
+				level[l] = 0;
+			}
+			
+			for (const [id, ex] of Object.entries(currentExercises)) {
+				if (id !== 'length') {
+					level[ex.level]++;
+				}
+			}
+		}
+		
+		const printPerformance = function() {
+			let sum = 0;
+			for (const cnt in level) {
+				sum += level[cnt];
+			}
+			let firstElm = null;
+			let lastElm = null;
+			for (const [lev, cnt] of Object.entries(level)) {
+				const element = document.querySelector('#performance'+lev);
+				if (null !== element) {
+					element.style.borderTopLeftRadius = '';
+					element.style.borderBottomLeftRadius = '';
+					element.style.borderTopRightRadius = '';
+					element.style.borderBottomRightRadius = '';
+					const width = Math.floor((cnt/sum) * 100);
+					element.style.width = width + 'px';
+					if (width !== 0) {
+						if (null === firstElm) {
+							firstElm = element;
+						}
+						lastElm = element;
+					}
+				}
+			}
+			firstElm.style.borderTopLeftRadius = '2px';
+			firstElm.style.borderBottomLeftRadius = '2px';
+			lastElm.style.borderTopRightRadius = '2px';
+			lastElm.style.borderBottomRightRadius = '2px';
+		}
+
+		const leftResult = function() {
+			switch (operator.textContent) {
+				case '+': return parseInt(first.textContent) + parseInt(second.textContent); 
+				case '-': return parseInt(first.textContent) - parseInt(second.textContent);
+			}
+			return null;
+		}
+		
+		const relationHolds = function() {
+			if (null != leftResult) {
+				switch (relation.textContent) {
+					case '>': return leftResult() > parseInt(result.textContent);
+					case '<': return leftResult() < parseInt(result.textContent);
+					case '=': return leftResult() === parseInt(result.textContent);
+				}
+			}
+			return false;
+		}
+
+		let timeLimitHolds = function(level) {
+			if (level < 3) {
+				return true;
+			}
+			const tasktime = performance.now() - tasktimeStart;
+
+			doneInTime = tasktime < currentExercise.time * Math.max((5 - level), 1);
+			
+			return doneInTime;
+		}
+
+		let currentInputField = result;
+		let currentExercise = null;
+		let locked = null;
+		let doneInTime = null;
+		let tasktimeStart = null;
+		const initTask = function() {
+			currentExercise = currentExercises[currentId];
+
+			first.textContent = currentExercise.first;
+			operator.textContent = currentExercise.operator;
+			second.textContent = currentExercise.second;
+			relation.textContent = currentExercise.relation;
+			result.textContent = currentExercise.result;
+
+			let newInputField = null;
+			switch (currentExercise.input) {
+				case 'result': newInputField = result; break;
+				case 'relation': newInputField = relation; break;
+				case 'first': newInputField = first; break;
+				case 'second': newInputField = second; break;
+			}
+			if (newInputField !== currentInputField) {
+				currentInputField.classList.remove('inputBox');
+				newInputField.classList.add('inputBox');
+				currentInputField = newInputField;
+			}
+
+            locked = false;
+			doneInTime = false;
+			tasktimeStart = performance.now();
+		}
+
+		let levelToCnt = {0:0, 1:1, 2:2, 3:3, 4:5, 5:8, 6:13, 7:21, 8:34};
+		const nextId = function() {
+			let newId = Math.floor(Math.random() * currentExercises.length);
+			if (currentExercises[newId].cnt >= levelToCnt[currentExercises[newId].level]) {
+				if (newId === currentId) {
+					return nextId();
+				}
+				currentExercises[newId].cnt = 0;
+			
+                return newId;
+			}
+			currentExercises[newId].cnt++;
+			
+			return nextId();
+		}
+
+		let currentId = null;
+		let failedId = null;
+		let failedId2 = null;
+		const nextTask = function() {
+			if (failedId !== currentId) {
+				if (failedId != null) {
+					currentId = failedId;
+					failedId = null;
+				} else {
+					currentId = nextId();
+				}
+				failedId = failedId2;
+				failedId2 = null;
+			} else {
+				currentId = nextId();
+			}
+			
+			initTask();
+		};
+
+		let tasksSuccess = document.getElementById('tasksSuccess');
+		let tasksPoints = document.getElementById('tasksPoints');
+		const applyPoints = function(resultCorrect) {
+            if (resultCorrect) {
+                tasksSuccess.textContent = (parseInt(tasksSuccess.textContent)+1).toString();
+                tasksPoints.textContent = (parseInt(tasksPoints.textContent)+1).toString();
+            } else {
+                tasksPoints.textContent = Math.max(0, parseInt(tasksPoints.textContent)-1).toString();
+            }
+		}
+		
+		const applyLevel = function(resultCorrect) {
+			if (resultCorrect) {
+				if (timeLimitHolds(currentExercise.level)) {
+					level[currentExercise.level] = Math.max(level[currentExercise.level]-1, 0);
+					currentExercise.level = Math.min(currentExercise.level+1, 5);
+					level[currentExercise.level]++;
+				} else {
+					level[currentExercise.level] = Math.max(level[currentExercise.level]-1, 3);
+					currentExercise.level = Math.max(currentExercise.level-1, 3);
+					level[currentExercise.level]++;
+				}
+			} else {
+				level[currentExercise.level] = Math.max(level[currentExercise.level]-1, 0);
+				level[0]++;
+				currentExercise.level = 0;
+			}
+			currentExercise.cnt = 0;
+
+			printPerformance();
+			localStorage.setItem(app, JSON.stringify(currentExercises));
+		}
+		
+		let check = function() {
+			if (relationHolds()) {
+				applyLevel(true);
+				applyPoints(true);
+				task.style.backgroundColor = doneInTime ? 'deepskyblue' : 'green';
+				window.setTimeout(function() {task.style.backgroundColor = ''; locked = false; nextTask();}, 500);
+			} else {
+				applyLevel(false);
+				applyPoints(false);
+				task.style.backgroundColor = 'red';
+                currentInputField.textContent = '';				
+				failedId2 = currentId;
+				window.setTimeout(function() {task.style.backgroundColor = ''; locked = false;}, 200);
+			}
+		}
+		
+		document.addEventListener('keydown', function (ev) {
+			if (locked) {
+				return;
+			}
+			
+			if (ev.key === 'Enter') {
+				if (currentId == null) {
+					nextTask();
+				} else if (currentInputField.textContent !== '') {
+					locked = true;
+					check();
+				}
+			} else if (currentInputField === relation) {
+				if (ev.key === 'ArrowLeft') {
+					relation.textContent = '<';
+				} else if (ev.key === 'ArrowRight') {
+					relation.textContent = '>';
+				} else if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+					relation.textContent = '=';
+				}
+			} else if (currentInputField !== relation && currentInputField !== operator) {
+				if (parseInt(ev.key) >= 0 && parseInt(ev.key) <= 9) {
+					if (currentInputField.textContent.length < 3) {
+						currentInputField.textContent += ev.key;
+					}
+				} else if (ev.key === 'Backspace') {
+					currentInputField.textContent = currentInputField.textContent.slice(0, -1); 
+				}
+			}
+		});
+		changeApp('plus');
+		let tasks = {
+			0: {id:0, first: 0, second: 0, result: 0, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			1: {id:1, first: 1, second: 0, result: 1, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			2: {id:2, first: 2, second: 0, result: 2, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			3: {id:3, first: 3, second: 0, result: 3, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			4: {id:4, first: 4, second: 0, result: 4, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			5: {id:5, first: 5, second: 0, result: 5, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			6: {id:6, first: 6, second: 0, result: 6, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			7: {id:7, first: 7, second: 0, result: 7, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			8: {id:8, first: 8, second: 0, result: 8, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			9: {id:9, first: 9, second: 0, result: 9, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			10: {id:10, first: 10, second: 0, result: 10, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			11: {id:11, first: 1, second: 1, result: 2, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			12: {id:12, first: 2, second: 1, result: 3, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			13: {id:13, first: 3, second: 1, result: 4, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			14: {id:14, first: 4, second: 1, result: 5, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			15: {id:15, first: 5, second: 1, result: 6, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			16: {id:16, first: 6, second: 1, result: 7, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			17: {id:17, first: 7, second: 1, result: 8, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			18: {id:18, first: 8, second: 1, result: 9, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			19: {id:19, first: 9, second: 1, result: 10, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			20: {id:20, first: 2, second: 2, result: 4, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			21: {id:21, first: 3, second: 2, result: 5, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			22: {id:22, first: 4, second: 2, result: 6, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			23: {id:23, first: 5, second: 2, result: 7, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			24: {id:24, first: 6, second: 2, result: 8, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			25: {id:25, first: 7, second: 2, result: 9, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			26: {id:26, first: 8, second: 2, result: 10, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			27: {id:27, first: 3, second: 3, result: 6, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			28: {id:28, first: 4, second: 3, result: 7, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			29: {id:29, first: 5, second: 3, result: 8, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			30: {id:30, first: 6, second: 3, result: 9, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			31: {id:31, first: 7, second: 3, result: 10, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			32: {id:32, first: 4, second: 4, result: 8, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			33: {id:33, first: 5, second: 4, result: 9, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+			34: {id:34, first: 6, second: 4, result: 10, plus: { level: 0, cnt: 0 }, minus: { level: 0, cnt: 0 }, plusMinus: { level: 0, cnt: 0 }},
+		};
+		console.log(tasks);
+    </script>
+  </body>
+</html>
